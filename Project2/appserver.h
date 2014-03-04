@@ -30,4 +30,16 @@ typedef struct LinkedList_struct
 	struct LinkedList_struct * next;
 }LinkedList;
 
+/*function to attempt to lock an account mutex*/
+int lock_account(account * to_lock);
+
+/*function to unlock an account mutex*/
+int unlock_account(account * to_unlock);
+
+/*function to get next element in linked list*/
+LinkedList * next(LinkedList * current);
+
+/*function used to search a linked list for a specific value*/
+LinkedList * search(LinkedList * head, int value);
+
 #endif

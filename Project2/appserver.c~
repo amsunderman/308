@@ -34,34 +34,12 @@ int main(int argc, char** argv)
 	FILE * out_fp;
 
 	/*parse input arguments*/
-	if(arg_parser(argc, argv, &num_workers, &num_accounts, out_fp))
+	if(!arg_parser(argc, argv, &num_workers, &num_accounts, out_fp))
 	{
 		/*argument error occured*/
 		return -1;
 	}
 
-	/*set up bank accounts*/
-
-	/*set up cmd_buffer*/
-
-	/*main command line loop*/
-
-	/*return successfully*/
-	return 0;
-}
-
-/**function used to parse command line arguments
- * @param int argc: passed from main to count arguments
- * @param int argv: passed from main to access cmd arguments
- * @param int * num_workers: variable to store argv[1]
- * @param int * num_accounts: variable to store argv[2]
- * @param FILE * out_fp: file pointer to open outfile specified by argv[3]
- * @ret int: 0 = operation success, -1 = operation failure
- * @author Adam Sunderman
- * @modified 03/04/2014*/
-int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts, 
-	FILE * out_fp)
-{
 	/*check for correct number of arguments*/
 	if(argc != NUM_ARGUMENTS)
 	{
@@ -74,14 +52,14 @@ int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts,
 	}
 
 	/*store arguments*/
-	if(!sscanf(argv[1], "%d", num_workers))
+	if(!sscanf(argv[1], "%d", &num_workers))
 	{
 		/*sscanf failed to read an integer*/
 		incorrect_argument_format();
 		return -1;
 	}
 
-	if(!sscanf(argv[2], "%d", num_accounts))
+	if(!sscanf(argv[2], "%d", &num_accounts))
 	{
 		/*sscanf failed to read an integer*/
 		incorrect_argument_format();
@@ -146,7 +124,7 @@ LinkedList * next(LinkedList * current)
 	/*TODO*/
 }
 
-/**function used to search a linked list for a specific value
+/*function used to search a linked list for a specific value
  * @param LinkedList * head: head of linked list to search
  * @param int value: value we are searching for
  * @ret LinkedList *: LinkedList structure with correct value
