@@ -1,0 +1,21 @@
+CPRE 308 Project 2: Multithreaded Server
+
+A multithreaded server that manages access to a set of bank accounts. The
+program is started with a certain number of accounts in the bank, and user
+requests can perform transactions on these accounts, as well as query their
+current status. The number of accounts in the bank remains fixed through the
+duration of the program.
+
+Each request requires access to multiple records from a database, and also
+requires some processing time. Since many user requests may arrive
+simultaneously, servicing the requests sequentially, one after another, would
+cause a high average latency for the users; servicing the requests in parallel
+is required to keep response times small. Thus, this program uses multiple
+threads to service the requests simultaneously.
+
+User requests are presented via terminal window. When the user types in a
+request, the server records the request and immediately presents the user with a
+transaction ID, and then continues to accept more requests. At a later point in
+time, when the request has been processed, the results will be written out. To 
+avoid interfering with user input, the delayed responses will be written to a
+file rather than displayed directly.
