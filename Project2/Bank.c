@@ -45,3 +45,11 @@ void write_account( int ID, int value)
 	usleep( 100000 );
 	BANK_accounts[ID - 1] = value;
 }
+
+/*
+ * frees memory allocated for Bank Accounts
+ */
+void free_accounts()
+{
+	free(BANK_accounts);
+}

@@ -7,6 +7,15 @@
 int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts, 
 	FILE * out_fp);
 
+/*prototype for function that sets up bank accounts*/
+int account_setup(account * accounts, int num_accounts);
+
+/*prototype for function that sets up cmd_buffer*/
+int command_buffer_setup(LinkedList * cmd_buffer);
+
+/*prototype for client loop*/
+int client_loop(int num_workers, int num_accounts, FILE * out_file);
+
 /*prototype for function to print incorrect argument format to stderr*/
 void incorrect_argument_format();
 
@@ -25,7 +34,7 @@ int main(int argc, char** argv)
 	account * accounts;
 
 	/*typedef'd linked list for command buffer*/
-	LinkedList cmd_buffer;
+	LinkedList * cmd_buffer;
 
 	/*integers to store num_workers and num_accounts*/
 	int num_workers, num_accounts;
@@ -41,10 +50,25 @@ int main(int argc, char** argv)
 	}
 
 	/*set up bank accounts*/
+	if(account_setup(accounts, num_accounts))
+	{
+		/*error encountered during bank account setup*/
+		return -1;
+	}
 
 	/*set up cmd_buffer*/
+	if(command_buffer_setup(cmd_buffer))
+	{
+		/*error encountered during command buffer setup*/
+		return -1;
+	}
 
 	/*main command line loop*/
+	if(client_loop(num_workers, num_accounts, out_fp))
+	{
+		/*error encountered during client operations*/
+		return -1;
+	}
 
 	/*return successfully*/
 	return 0;
@@ -103,6 +127,24 @@ int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts,
 	return 0;
 }
 
+/*TODO*/
+int account_setup(account * accounts, int num_accounts)
+{
+	/*TODO*/
+}
+
+/*TODO*/
+int command_buffer_setup(LinkedList * cmd_buffer)
+{
+	/*TODO*/
+}
+
+/*TODO*/
+int client_loop(int num_workers, int num_accounts, FILE * out_file)
+{
+	/*TODO*/
+}
+
 /**function used to print incorrect argument format to stderr
  * @param void
  * @ret void
@@ -137,22 +179,21 @@ int unlock_account(account * to_unlock)
 }
 
 /**function to get next element in linked list
- * @param LinkedList * current: current element in LinkedList
- * @ret LinkedList *: will be next element in LinkedList
+ * @param LinkedList * command_buffer: linked list to pull from
+ * @ret char * command: will be next command in LinkedList
  * @author Adam Sunderman
  * @modified 03/04/2014*/
-LinkedList * next(LinkedList * current)
+char * next_command(LinkedList * command_buffer)
 {
 	/*TODO*/
 }
 
-/**function used to search a linked list for a specific value
- * @param LinkedList * head: head of linked list to search
- * @param int value: value we are searching for
- * @ret LinkedList *: LinkedList structure with correct value
+/**function used to add command onto linked list
+ * @param LinkedList * command_buffer: command buffer to add command onto
+ * @ret int: 0 = operation success -1 = operation failure
  * @author Adam Sunderman
  * @modified 03/04/2014*/
-LinkedList * search(LinkedList * head, int value)
+int add_command(LinkedList * command_buffer)
 {
 	/*TODO*/
 }

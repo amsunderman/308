@@ -26,3 +26,8 @@ int read_account( int ID );
  *  Input:  int value - value to write to account
  */
 void write_account( int ID, int value);
+
+/*
+ * frees memory allocated for Bank Accounts
+ */
+void free_accounts();
