@@ -23,4 +23,11 @@ typedef struct account_struct
 	int value;
 }account;
 
+/*structure used to store data in a linked list*/
+typedef struct LinkedList_struct
+{
+	char * command;
+	struct LinkedList_struct * next;
+}LinkedList;
+
 #endif
