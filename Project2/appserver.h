@@ -37,6 +37,7 @@ typedef struct account_struct
 typedef struct LinkedCommand_struct
 {
 	char * command;
+	int id;
 	struct LinkedCommand_struct * next;
 	
 }LinkedCommand;
@@ -57,9 +58,9 @@ int lock_account(account * to_lock);
 int unlock_account(account * to_unlock);
 
 /*function to get next command in linked list*/
-char * next_command(LinkedList * command_buffer);
+LinkedCommand next_command();
 
 /*function used to add command onto linked list*/
-int add_command(LinkedList * command_buffer, char * given_command);
+int add_command(char * given_command, int id);
 
 #endif

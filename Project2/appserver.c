@@ -5,21 +5,38 @@
 #define MAX_COMMAND_SIZE 100
 
 /*prototype for function that parses command line arguments*/
-int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts, 
-	FILE * out_fp);
+int arg_parser(int argc, char** argv);
 
 /*prototype for function that sets up bank accounts*/
-int account_setup(account * accounts, int num_accounts);
+int account_setup();
 
 /*prototype for function that sets up cmd_buffer*/
-int command_buffer_setup(LinkedList * cmd_buffer);
+int command_buffer_setup();
 
 /*prototype for client loop*/
-int client_loop(LinkedList * cmd_buffer, int num_workers, int num_accounts, 
-	FILE * out_file);
+int client_loop();
 
 /*prototype for function to print incorrect argument format to stderr*/
 void incorrect_argument_format();
+
+/*prototype for request handling worker threads*/
+void * request_handler();
+
+/*int to mark if the threads should be running or finishing up*/
+int running = 1;
+
+/*accounts*/
+account * accounts;
+
+/*command buffer*/
+LinkedList * cmd_buffer;
+
+/*num_workers and accounts*/
+int num_workers;
+int num_accounts;
+
+/*out file*/
+FILE * out_fp;
 
 /**program used to initiate bank account server and take requests. will output
  * request results to file provided as arv[3]
@@ -31,21 +48,11 @@ void incorrect_argument_format();
  * @modified 03/04/2014*/
 int main(int argc, char** argv)
 {
-	/*pointer to typedef'd account structure to store locks for all
- 	* accounts*/
-	account * accounts;
-
-	/*typedef'd linked list for command buffer*/
-	LinkedList * cmd_buffer = malloc(sizeof(LinkedList));
-
-	/*integers to store num_workers and num_accounts*/
-	int num_workers, num_accounts;
-
-	/*file pointer to write program output to*/
-	FILE * out_fp;
+	/*initialize command buffer*/
+	cmd_buffer = malloc(sizeof(LinkedList));
 
 	/*parse input arguments*/
-	if(arg_parser(argc, argv, &num_workers, &num_accounts, out_fp))
+	if(arg_parser(argc, argv))
 	{
 		/*argument error occured*/
 		return -1;
@@ -55,41 +62,40 @@ int main(int argc, char** argv)
 	accounts = malloc(num_accounts * sizeof(account));
 
 	/*set up bank accounts*/
-	if(account_setup(accounts, num_accounts))
+	if(account_setup())
 	{
 		/*error encountered during bank account setup*/
 		return -1;
 	}
 
 	/*set up cmd_buffer*/
-	if(command_buffer_setup(cmd_buffer))
+	if(command_buffer_setup())
 	{
 		/*error encountered during command buffer setup*/
 		return -1;
 	}
 
 	/*main command line loop*/
-	if(client_loop(cmd_buffer, num_workers, num_accounts, out_fp))
+	if(client_loop())
 	{
 		/*error encountered during client operations*/
 		return -1;
 	}
+
+	/*free stuff*/
+	free(cmd_buffer);
+	free(accounts);
+	free_accounts();
 
 	/*return successfully*/
 	return 0;
 }
 
 /**function used to parse command line arguments
- * @param int argc: passed from main to count arguments
- * @param int argv: passed from main to access cmd arguments
- * @param int * num_workers: variable to store argv[1]
- * @param int * num_accounts: variable to store argv[2]
- * @param FILE * out_fp: file pointer to open outfile specified by argv[3]
  * @ret int: 0 = operation success, -1 = operation failure
  * @author Adam Sunderman
  * @modified 03/04/2014*/
-int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts, 
-	FILE * out_fp)
+int arg_parser(int argc, char** argv)
 {
 	/*check for correct number of arguments*/
 	if(argc != NUM_ARGUMENTS)
@@ -103,14 +109,14 @@ int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts,
 	}
 
 	/*store arguments*/
-	if(!sscanf(argv[1], "%d", num_workers))
+	if(!sscanf(argv[1], "%d", &num_workers))
 	{
 		/*sscanf failed to read an integer*/
 		incorrect_argument_format();
 		return -1;
 	}
 
-	if(!sscanf(argv[2], "%d", num_accounts))
+	if(!sscanf(argv[2], "%d", &num_accounts))
 	{
 		/*sscanf failed to read an integer*/
 		incorrect_argument_format();
@@ -133,12 +139,10 @@ int arg_parser(int argc, char** argv, int * num_workers, int * num_accounts,
 }
 
 /*function used to set up accounts
- * @param account * accounts: account array to store locks
- * @param int num_accounts: number of accounts to initialize
  * @ret int: 0 = operation success -1 = failure
  * @author Adam Sunderman
  * @modified 03/24/14*/
-int account_setup(account * accounts, int num_accounts)
+int account_setup()
 {
 	/*counter*/
 	int i;
@@ -157,11 +161,10 @@ int account_setup(account * accounts, int num_accounts)
 }
 
 /*Function used to initialize command buffer
- * @param LinkedList * cmd_buffer: list to be initialized.
  * @ret int: 0 = operation success, -1 = failure
  * @author Adam Sunderman
  * @modified 03/24/14 */
-int command_buffer_setup(LinkedList * cmd_buffer)
+int command_buffer_setup()
 {
 	/*initialize command buffer*/
 	pthread_mutex_init(&(cmd_buffer->lock), NULL);
@@ -176,24 +179,88 @@ int command_buffer_setup(LinkedList * cmd_buffer)
 /*function that loops and executes commands as threads until the exit
  * function is called. After exit is called, the rest of the commands are ran
  * and the threads are joined before the function returns
- * @param LinkedList * cmd_buffer: command buffer
- * @param int num_workers: number of worker threads to use
- * @param int num_accounts: number of accounts in bank
- * @param FILE * out_file: file to write transactions to
  * @ret int: 0 = op success -1 = failure
  * @author Adam Sunderman
  * @modified 03/24/14 */
-int client_loop(LinkedList * cmd_buffer, int num_workers, int num_accounts, 
-	FILE * out_file)
+int client_loop()
 {
-	/*TODO*/
+	/*pthread workers*/
+	pthread_t workers[num_workers];
+
+	/*counter*/
+	int i;
+
+	/*size_t used for getline*/
+	size_t n = 100;
+
+	/*return value of getline*/
+	ssize_t read_size = 0;
+
+	/*entered command*/
+	char * command = malloc(MAX_COMMAND_SIZE * sizeof(char));
+
+	/*command ID*/
+	int id = 1;
+
+	/*init workers*/
+	for(i = 0; i < num_workers; i++)
+	{
+		pthread_create(&workers[i], NULL, request_handler, NULL);
+	}
+
+	/*client loop*/
+	while(1)
+	{
+		/*read line*/
+		read_size = getline(&command, &n, stdin);
+
+		/*null terminate line*/
+		command[read_size - 1] = '\0';
+
+		/*check for end*/
+		if(strcmp(command, "END") == 0)
+		{
+			/*mark done*/
+			running = 0;
+
+			/*break loop and perform cleanup*/
+			break;
+		}
+
+		/*print command id*/
+		printf("ID %d\n", id);
+
+		/*add command to buffer*/
+		add_command(command, id);
+
+		/*incremend id*/
+		id++;
+	}
+
+	/*clear out command buffer*/
+	while(cmd_buffer->size > 0)
+	{
+		/*sleep to release control to worker thread*/
+		usleep(1);
+	}
+
+	/*wait for workers to finish*/
+	for(i = 0; i < num_workers; i++)
+	{
+		pthread_join(workers[i], NULL);
+	}
+
+	/*close file*/
+	fclose(out_fp);
+
+	/*free command*/
+	free(command);
 
 	/*return successfully*/
 	return 0;
 }
 
 /**function used to print incorrect argument format to stderr
- * @param void
  * @ret void
  * @author Adam Sunderman
  * @modified 03/04/2014*/
@@ -203,6 +270,268 @@ void incorrect_argument_format()
 	fprintf(stderr, "appserver expected format: ");
 	fprintf(stderr, ARGUMENT_FORMAT);
 	fprintf(stderr, "\nappserver: exiting program\n");
+}
+
+void * request_handler()
+{
+	LinkedCommand cmd;
+
+	char ** cmd_tokens = malloc(20 * sizeof(char*));
+
+	char * cur_tok;
+
+	int num_tokens = 0;
+
+	int check_account;
+
+	int amount;
+
+	int i;
+
+	int ISF = 0;
+
+	/*while main loop is running*/
+	while(running)
+	{
+		/*if no commands are present then sleep to release
+		* control of the thread*/
+		while(cmd_buffer->size == 0 && running)
+		{
+			usleep(1);
+		}
+
+		/*get next command*/
+		cmd = next_command();
+
+		if(!cmd.command)
+		{
+			/*if command is NULL we are currently out of commands*/
+			continue;
+		}
+
+		/*parse command*/
+		cur_tok = strtok(cmd.command, " ");
+		while(cur_tok)
+		{
+			cmd_tokens[num_tokens] = malloc(20 * sizeof(char));
+			strncpy(cmd_tokens[num_tokens], cur_tok, 20);
+			num_tokens++;
+			cur_tok = strtok(NULL, " ");
+		}
+		/*execute command*/
+		/*is it a CHECK command?*/
+		if(strcmp(cmd_tokens[0], "CHECK") == 0 && num_tokens == 2)
+		{
+			check_account = atoi(cmd_tokens[1]);
+			while(lock_account(&(accounts[check_account])));
+			amount = read_account(check_account);
+			unlock_account(&(accounts[check_account]));
+			printf("%d BAL %d\n", cmd.id, amount);
+		}
+		/*is it a TRANS command*/
+		else if(strcmp(cmd_tokens[0], "TRANS") == 0 && num_tokens % 2 
+			&& num_tokens > 1)
+		{
+			/*variables to store transaction info*/
+			int num_trans = (num_tokens - 1) / 2;
+			int trans_accounts[num_trans];
+			int trans_amounts[num_trans];
+			int trans_balances[num_trans];
+
+			/*store accounts and transfer amounts*/
+			for(i = 0; i < num_trans; i++)
+			{
+				trans_accounts[i] = atoi(cmd_tokens[i*2+1]);
+				trans_amounts[i] = atoi(cmd_tokens[i*2+2]);
+			}
+
+			/*try to lock accounts*/
+			for(i = 0; i < num_trans; i++)
+			{
+				if(lock_account(&(accounts[trans_accounts[i]])))
+				{
+					/*if we fail to lock, release locks and
+					* sleep to release control*/
+					for(i = i - 1; i >= 0; i--)
+					{
+						unlock_account(&(accounts[
+							trans_accounts[i]]));
+					}
+					i = 0;
+					usleep(1);
+					continue;
+				}
+			}
+			/*check all transactions for sufficient funds*/
+			for(i = 0; i < num_trans; i++)
+			{
+				trans_balances[i] = 
+					read_account(trans_accounts[i]);
+				if(trans_balances[i] + trans_amounts[i] < 0)
+				{
+					/*if ISF then let program know and
+					* print to out file*/
+					printf("%d ISF %d\n", 
+						cmd.id, trans_accounts[i]);
+					ISF = 1;
+					break;
+				}
+			}
+			/*if we have sufficient funds*/
+			if(!ISF)
+			{
+				/*execute transactions*/
+				for(i = 0; i < num_trans; i++)
+				{
+					write_account(trans_accounts[i], 
+						trans_balances[i] + 
+						trans_amounts[i]);
+					accounts[i].value += trans_amounts[i];
+				}
+				/*print transaction success*/
+				printf("%d OK\n", cmd.id);
+			}
+			/*unlock accounts*/
+			for(i = 0; i < num_trans; i++)
+			{
+				unlock_account(&(accounts[trans_accounts[i]]));
+			}
+		}
+		/*invalid command*/
+		else
+		{
+			printf("%s\n", cmd.command);
+			fprintf(stderr, "%d INVALID REQUEST FORMAT\n", cmd.id);
+		}
+		/*free command*/
+		free(cmd.command);
+		for(i = 0; i < num_tokens; i++)
+		{
+			free(cmd_tokens[i]);
+		}
+		num_tokens = 0;
+	}
+
+	/*main loop is done, finish remaining commands*/
+	while(cmd_buffer->size > 0)
+	{
+		/*get next command*/
+		cmd = next_command();
+
+		if(!cmd.command)
+		{
+			/*if command is NULL we have finished*/
+			break;
+		}
+
+		/*parse command*/
+		cur_tok = strtok(cmd.command, " ");
+		while(cur_tok)
+		{
+			cmd_tokens[num_tokens] = malloc(20*sizeof(char));
+			strncpy(cmd_tokens[num_tokens], cur_tok, 20);
+			num_tokens++;
+			cur_tok = strtok(NULL, " ");
+		}
+		/*execute command*/
+		/*is it a CHECK command?*/
+		if(strcmp(cmd_tokens[0], "CHECK") == 0 && num_tokens == 2)
+		{
+			check_account = atoi(cmd_tokens[1]);
+			while(lock_account(&(accounts[check_account])));
+			amount = read_account(check_account);
+			unlock_account(&(accounts[check_account]));
+			printf("%d BAL %d\n", cmd.id, amount);
+		}
+		/*is it a TRANS command*/
+		else if(strcmp(cmd_tokens[0], "TRANS") == 0 && num_tokens % 2 
+			&& num_tokens > 1)
+		{
+			/*variables to store transaction info*/
+			int num_trans = (num_tokens - 1) / 2;
+			int trans_accounts[num_trans];
+			int trans_amounts[num_trans];
+			int trans_balances[num_trans];
+
+			/*store accounts and transfer amounts*/
+			for(i = 0; i < num_trans; i++)
+			{
+				trans_accounts[i] = atoi(cmd_tokens[i*2+1]);
+				trans_amounts[i] = atoi(cmd_tokens[i*2+2]);
+			}
+
+			/*try to lock accounts*/
+			for(i = 0; i < num_trans; i++)
+			{
+				if(lock_account(&(accounts[trans_accounts[i]])))
+				{
+					/*if we fail to lock, release locks and
+					* sleep to release control*/
+					for(i = i-1; i >= 0; i--)
+					{
+						unlock_account(&(accounts[
+							trans_accounts[i]]));
+					}
+					i = 0;
+					usleep(1);
+					continue;
+				}
+			}
+			/*check all transactions for sufficient funds*/
+			for(i = 0; i < num_trans; i++)
+			{
+				trans_balances[i] = 
+					read_account(trans_accounts[i]);
+				if(trans_balances[i] + trans_amounts[i] < 0)
+				{
+					/*if ISF then let program know and
+					* print to out file*/
+					printf("%d ISF %d\n", 
+						cmd.id, trans_accounts[i]);
+					ISF = 1;
+					break;
+				}
+			}
+			/*if we have sufficient funds*/
+			if(!ISF)
+			{
+				/*execute transactions*/
+				for(i = 0; i < num_trans; i++)
+				{
+					write_account(trans_accounts[i], 
+						trans_balances[i] + 
+						trans_amounts[i]);
+					accounts[i].value += trans_amounts[i];
+				}
+				/*print transaction success*/
+				printf("%d OK\n", cmd.id);
+			}
+			/*unlock accounts*/
+			for(i = 0; i < num_trans; i++)
+			{
+				unlock_account(&(accounts[trans_accounts[i]]));
+			}
+		}
+		/*invalid command*/
+		else
+		{
+			printf("%s\n", cmd.command);
+			fprintf(stderr, "%d INVALID REQUEST FORMAT\n", cmd.id);
+		}
+		/*free command*/
+		free(cmd.command);
+		for(i = 0; i < num_tokens; i++)
+		{
+			free(cmd_tokens[i]);
+		}
+
+		num_tokens = 0;
+	}
+
+	free(cmd_tokens);
+
+	/*return*/
+	return;
 }
 
 /**function used to attempt to lock an account mutex
@@ -242,49 +571,55 @@ int unlock_account(account * to_unlock)
  * exists)
  * @author Adam Sunderman
  * @modified 03/24/2014*/
-char * next_command(LinkedList * command_buffer)
+LinkedCommand next_command()
 {
 	/*temporary pointer used to free head*/
 	LinkedCommand * temp_head;
 
 	/*initialize return value*/
-	char * ret = malloc(MAX_COMMAND_SIZE * sizeof(char));
+	LinkedCommand ret;
 
 	/*lock command buffer*/
-	pthread_mutex_lock(&(command_buffer->lock));
+	pthread_mutex_lock(&(cmd_buffer->lock));
 
 	/*are there any commands to pull?*/
-	if(command_buffer->size > 0)
+	if(cmd_buffer->size > 0)
 	{
 		/*set return value*/
-		strncpy(ret, command_buffer->head->command, MAX_COMMAND_SIZE);
+		ret.id = cmd_buffer->head->id;
+		ret.command = malloc(MAX_COMMAND_SIZE * sizeof(char));
+		strncpy(ret.command, cmd_buffer->head->command, 
+			MAX_COMMAND_SIZE);
+		ret.next = NULL;
 
 		/*move head and free memory from linked list*/
-		temp_head = command_buffer->head;
-		command_buffer->head = command_buffer->head->next;
+		temp_head = cmd_buffer->head;
+		cmd_buffer->head = cmd_buffer->head->next;
 		free(temp_head->command);
 		free(temp_head);
 
 		/*if head ran past tail set tail back to null*/
-		if(!command_buffer->head)
+		if(!cmd_buffer->head)
 		{
-			command_buffer->tail = NULL;
+			cmd_buffer->tail = NULL;
 		}
 
 		/*update linked list size*/
-		command_buffer->size = command_buffer->size - 1;
+		cmd_buffer->size = cmd_buffer->size - 1;
 	}
 	else
 	{
 		/*unlock command buffer*/
-		pthread_mutex_unlock(&(command_buffer->lock));
+		pthread_mutex_unlock(&(cmd_buffer->lock));
+
+		ret.command = NULL;
 
 		/*no commands in buffer*/
-		return NULL;
+		return ret;
 	}
 
 	/*unlock command buffer*/
-	pthread_mutex_unlock(&(command_buffer->lock));
+	pthread_mutex_unlock(&(cmd_buffer->lock));
 
 	/*return command*/
 	return ret;
@@ -295,7 +630,7 @@ char * next_command(LinkedList * command_buffer)
  * @ret int: 0 = operation success -1 = operation failure
  * @author Adam Sunderman
  * @modified 03/24/2014*/
-int add_command(LinkedList * command_buffer, char * given_command)
+int add_command(char * given_command, int id)
 {
 	/*initialize new LinkedCommand to add to list*/
 	LinkedCommand * new_tail = malloc(sizeof(LinkedCommand));
@@ -303,33 +638,34 @@ int add_command(LinkedList * command_buffer, char * given_command)
 	/*construct the command*/
 	new_tail->command = malloc(MAX_COMMAND_SIZE * sizeof(char));
 	strncpy(new_tail->command, given_command, MAX_COMMAND_SIZE);
+	new_tail->id = id;
 	new_tail->next = NULL;
 
 	/*lock command_buffer*/
-	pthread_mutex_lock(&(command_buffer->lock));
+	pthread_mutex_lock(&(cmd_buffer->lock));
 
 	/*is the list currently empty*/
-	if(command_buffer->size > 0)
+	if(cmd_buffer->size > 0)
 	{
 		/*have tail point to this new command*/
-		command_buffer->tail->next = new_tail;
+		cmd_buffer->tail->next = new_tail;
 
 		/*set new tail and increment size of linked list*/
-		command_buffer->tail = new_tail;
-		command_buffer->size = command_buffer->size + 1;
+		cmd_buffer->tail = new_tail;
+		cmd_buffer->size = cmd_buffer->size + 1;
 	}
 	else
 	{
 		/*add first element and set head and tail to it*/
-		command_buffer->head = new_tail;
-		command_buffer->tail = new_tail;
+		cmd_buffer->head = new_tail;
+		cmd_buffer->tail = new_tail;
 
 		/*size is one*/
-		command_buffer->size = 1;
+		cmd_buffer->size = 1;
 	}
 
 	/*unlock command buffer*/
-	pthread_mutex_unlock(&(command_buffer->lock));
+	pthread_mutex_unlock(&(cmd_buffer->lock));
 
 	/*return successfully*/
 	return 0;
