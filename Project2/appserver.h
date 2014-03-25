@@ -6,6 +6,16 @@
 #include <stdio.h>
 #endif
 
+#ifndef STDLIB
+#define STDLIB
+#include <stdlib.h>
+#endif
+
+#ifndef STRING
+#define STRING
+#include <string.h>
+#endif
+
 #ifndef PTHREAD
 #define PTHREAD
 #include <pthread.h>
@@ -50,6 +60,6 @@ int unlock_account(account * to_unlock);
 char * next_command(LinkedList * command_buffer);
 
 /*function used to add command onto linked list*/
-int add_command(LinkedList * command_buffer);
+int add_command(LinkedList * command_buffer, char * given_command);
 
 #endif

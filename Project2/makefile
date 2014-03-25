@@ -12,11 +12,11 @@ all: $(ALL)
 
 #executables
 appserver: appserver.o Bank.o
-	$(CC) -o appserver appserver.o Bank.o
+	$(CC) -pthread -o appserver appserver.o Bank.o
 
 #object files
 appserver.o: appserver.c
-	$(CC) -c appserver.c
+	$(CC) -pthread -c appserver.c
 Bank.o: Bank.c
 	$(CC) -c Bank.c
 
