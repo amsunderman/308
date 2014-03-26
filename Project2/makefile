@@ -18,7 +18,7 @@ appserver: appserver.o Bank.o
 appserver.o: appserver.c
 	$(CC) -pthread -g -c appserver.c
 Bank.o: Bank.c
-	$(CC) -c -g Bank.c
+	$(CC) -g -c Bank.c
 
 #cleanup files
 clean:

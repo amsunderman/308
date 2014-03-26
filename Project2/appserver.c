@@ -1,8 +1,10 @@
 #include "appserver.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #define NUM_ARGUMENTS 4
 #define ARGUMENT_FORMAT "appserver num_workers num_accounts out_file"
-#define MAX_COMMAND_SIZE 100
+#define MAX_COMMAND_SIZE 200
 
 /*prototype for function that parses command line arguments*/
 int arg_parser(int argc, char** argv);
@@ -34,6 +36,9 @@ LinkedList * cmd_buffer;
 /*num_workers and accounts*/
 int num_workers;
 int num_accounts;
+
+/*lock to make str_tok threadsafe*/
+pthread_mutex_t tok_lock;
 
 /*out file*/
 FILE * out_fp;
@@ -86,8 +91,8 @@ int main(int argc, char** argv)
 	free(cmd_buffer);
 	free(accounts);
 	free_accounts();
+	fclose(out_fp);
 
-	/*return successfully*/
 	return 0;
 }
 
@@ -124,7 +129,7 @@ int arg_parser(int argc, char** argv)
 	}
 
 	/*open output file*/
-	out_fp = fopen(argv[3], "w+");
+	out_fp = fopen(argv[3], "w");
 
 	if(!out_fp)
 	{
@@ -208,6 +213,8 @@ int client_loop()
 		pthread_create(&workers[i], NULL, request_handler, NULL);
 	}
 
+	pthread_mutex_init(&tok_lock, NULL);
+
 	/*client loop*/
 	while(1)
 	{
@@ -250,9 +257,6 @@ int client_loop()
 		pthread_join(workers[i], NULL);
 	}
 
-	/*close file*/
-	fclose(out_fp);
-
 	/*free command*/
 	free(command);
 
@@ -274,24 +278,35 @@ void incorrect_argument_format()
 
 void * request_handler()
 {
+	/*current command*/
 	LinkedCommand cmd;
 
-	char ** cmd_tokens = malloc(20 * sizeof(char*));
+	/*string of arguments*/
+	char ** cmd_tokens = malloc(21 * sizeof(char*));
 
+	/*current argument*/
 	char * cur_tok;
 
+	/*number of arguments in command*/
 	int num_tokens = 0;
 
+	/*stores account to check*/
 	int check_account;
 
+	/*stores amount in check command*/
 	int amount;
 
-	int i;
+	/*counters*/
+	int i, j;
 
+	/*flag to mark insufficient funds*/
 	int ISF = 0;
 
-	/*while main loop is running*/
-	while(running)
+	/*store timestamp*/
+	struct timeval timestamp2;
+
+	/*while main loop is running or buffer isn't empty*/
+	while(running || cmd_buffer->size > 0)
 	{
 		/*if no commands are present then sleep to release
 		* control of the thread*/
@@ -310,23 +325,33 @@ void * request_handler()
 		}
 
 		/*parse command*/
+		pthread_mutex_lock(&tok_lock);
 		cur_tok = strtok(cmd.command, " ");
 		while(cur_tok)
 		{
-			cmd_tokens[num_tokens] = malloc(20 * sizeof(char));
-			strncpy(cmd_tokens[num_tokens], cur_tok, 20);
+			cmd_tokens[num_tokens] = malloc(21 * sizeof(char));
+			strncpy(cmd_tokens[num_tokens], cur_tok, 21);
 			num_tokens++;
 			cur_tok = strtok(NULL, " ");
 		}
+		pthread_mutex_unlock(&tok_lock);
 		/*execute command*/
 		/*is it a CHECK command?*/
 		if(strcmp(cmd_tokens[0], "CHECK") == 0 && num_tokens == 2)
 		{
+			pthread_mutex_lock(&tok_lock);
 			check_account = atoi(cmd_tokens[1]);
-			while(lock_account(&(accounts[check_account])));
+			pthread_mutex_unlock(&tok_lock);
+			while(lock_account(&(accounts[check_account - 1])));
 			amount = read_account(check_account);
-			unlock_account(&(accounts[check_account]));
-			printf("%d BAL %d\n", cmd.id, amount);
+			unlock_account(&(accounts[check_account - 1]));
+			gettimeofday(&timestamp2, NULL);
+			flockfile(out_fp);
+			fprintf(out_fp, "%d BAL %d TIME %d.%06d %d.%06d\n", 
+				cmd.id, amount, cmd.timestamp.tv_sec, 
+				cmd.timestamp.tv_usec, timestamp2.tv_sec, 
+				timestamp2.tv_usec);
+			funlockfile(out_fp);
 		}
 		/*is it a TRANS command*/
 		else if(strcmp(cmd_tokens[0], "TRANS") == 0 && num_tokens % 2 
@@ -337,31 +362,47 @@ void * request_handler()
 			int trans_accounts[num_trans];
 			int trans_amounts[num_trans];
 			int trans_balances[num_trans];
+			int temp;
 
 			/*store accounts and transfer amounts*/
 			for(i = 0; i < num_trans; i++)
 			{
+				pthread_mutex_lock(&tok_lock);
 				trans_accounts[i] = atoi(cmd_tokens[i*2+1]);
 				trans_amounts[i] = atoi(cmd_tokens[i*2+2]);
+				pthread_mutex_unlock(&tok_lock);
+			}
+
+			/*sort accounts in ascending order*/
+			for(i = 0; i < num_trans; i++)
+			{
+				for(j = i; j < num_trans; j++)
+				{
+					if(trans_accounts[j]<trans_accounts[i])
+					{
+						temp = trans_accounts[i];
+						trans_accounts[i] = 
+							trans_accounts[j];
+						trans_accounts[j] = temp;
+						temp = trans_amounts[i];
+						trans_amounts[i] = 
+							trans_amounts[j];
+						trans_amounts[j] = temp;
+					}
+				}
 			}
 
 			/*try to lock accounts*/
 			for(i = 0; i < num_trans; i++)
 			{
-				if(lock_account(&(accounts[trans_accounts[i]])))
+				if(lock_account(&(accounts[trans_accounts[i]
+					 - 1])))
 				{
-					/*if we fail to lock, release locks and
-					* sleep to release control*/
-					for(i = i - 1; i >= 0; i--)
-					{
-						unlock_account(&(accounts[
-							trans_accounts[i]]));
-					}
-					i = 0;
-					usleep(1);
+					i = i - 1;
 					continue;
 				}
 			}
+
 			/*check all transactions for sufficient funds*/
 			for(i = 0; i < num_trans; i++)
 			{
@@ -371,8 +412,16 @@ void * request_handler()
 				{
 					/*if ISF then let program know and
 					* print to out file*/
-					printf("%d ISF %d\n", 
-						cmd.id, trans_accounts[i]);
+					gettimeofday(&timestamp2, NULL);
+					flockfile(out_fp);
+					fprintf(out_fp, "%d ISF %d TIME " 
+						"%d.06%d %d.06%d\n", 
+						cmd.id, trans_accounts[i], 
+						cmd.timestamp.tv_sec, 
+						cmd.timestamp.tv_usec, 
+						timestamp2.tv_sec, 
+						timestamp2.tv_usec);
+					funlockfile(out_fp);
 					ISF = 1;
 					break;
 				}
@@ -384,23 +433,28 @@ void * request_handler()
 				for(i = 0; i < num_trans; i++)
 				{
 					write_account(trans_accounts[i], 
-						trans_balances[i] + 
-						trans_amounts[i]);
-					accounts[i].value += trans_amounts[i];
+						(trans_balances[i] + 
+						trans_amounts[i]));
 				}
 				/*print transaction success*/
-				printf("%d OK\n", cmd.id);
+				gettimeofday(&timestamp2, NULL);
+				flockfile(out_fp);
+				fprintf(out_fp, "%d OK TIME %d.%06d %d.%06d\n", 
+					cmd.id, cmd.timestamp.tv_sec, 
+					cmd.timestamp.tv_usec, 
+					timestamp2.tv_sec, timestamp2.tv_usec);
+				funlockfile(out_fp);
 			}
 			/*unlock accounts*/
-			for(i = 0; i < num_trans; i++)
+			for(i = num_trans - 1; i >= 0; i--)
 			{
-				unlock_account(&(accounts[trans_accounts[i]]));
+				unlock_account(&(accounts[trans_accounts[i] 
+					- 1]));
 			}
 		}
 		/*invalid command*/
 		else
 		{
-			printf("%s\n", cmd.command);
 			fprintf(stderr, "%d INVALID REQUEST FORMAT\n", cmd.id);
 		}
 		/*free command*/
@@ -410,122 +464,7 @@ void * request_handler()
 			free(cmd_tokens[i]);
 		}
 		num_tokens = 0;
-	}
-
-	/*main loop is done, finish remaining commands*/
-	while(cmd_buffer->size > 0)
-	{
-		/*get next command*/
-		cmd = next_command();
-
-		if(!cmd.command)
-		{
-			/*if command is NULL we have finished*/
-			break;
-		}
-
-		/*parse command*/
-		cur_tok = strtok(cmd.command, " ");
-		while(cur_tok)
-		{
-			cmd_tokens[num_tokens] = malloc(20*sizeof(char));
-			strncpy(cmd_tokens[num_tokens], cur_tok, 20);
-			num_tokens++;
-			cur_tok = strtok(NULL, " ");
-		}
-		/*execute command*/
-		/*is it a CHECK command?*/
-		if(strcmp(cmd_tokens[0], "CHECK") == 0 && num_tokens == 2)
-		{
-			check_account = atoi(cmd_tokens[1]);
-			while(lock_account(&(accounts[check_account])));
-			amount = read_account(check_account);
-			unlock_account(&(accounts[check_account]));
-			printf("%d BAL %d\n", cmd.id, amount);
-		}
-		/*is it a TRANS command*/
-		else if(strcmp(cmd_tokens[0], "TRANS") == 0 && num_tokens % 2 
-			&& num_tokens > 1)
-		{
-			/*variables to store transaction info*/
-			int num_trans = (num_tokens - 1) / 2;
-			int trans_accounts[num_trans];
-			int trans_amounts[num_trans];
-			int trans_balances[num_trans];
-
-			/*store accounts and transfer amounts*/
-			for(i = 0; i < num_trans; i++)
-			{
-				trans_accounts[i] = atoi(cmd_tokens[i*2+1]);
-				trans_amounts[i] = atoi(cmd_tokens[i*2+2]);
-			}
-
-			/*try to lock accounts*/
-			for(i = 0; i < num_trans; i++)
-			{
-				if(lock_account(&(accounts[trans_accounts[i]])))
-				{
-					/*if we fail to lock, release locks and
-					* sleep to release control*/
-					for(i = i-1; i >= 0; i--)
-					{
-						unlock_account(&(accounts[
-							trans_accounts[i]]));
-					}
-					i = 0;
-					usleep(1);
-					continue;
-				}
-			}
-			/*check all transactions for sufficient funds*/
-			for(i = 0; i < num_trans; i++)
-			{
-				trans_balances[i] = 
-					read_account(trans_accounts[i]);
-				if(trans_balances[i] + trans_amounts[i] < 0)
-				{
-					/*if ISF then let program know and
-					* print to out file*/
-					printf("%d ISF %d\n", 
-						cmd.id, trans_accounts[i]);
-					ISF = 1;
-					break;
-				}
-			}
-			/*if we have sufficient funds*/
-			if(!ISF)
-			{
-				/*execute transactions*/
-				for(i = 0; i < num_trans; i++)
-				{
-					write_account(trans_accounts[i], 
-						trans_balances[i] + 
-						trans_amounts[i]);
-					accounts[i].value += trans_amounts[i];
-				}
-				/*print transaction success*/
-				printf("%d OK\n", cmd.id);
-			}
-			/*unlock accounts*/
-			for(i = 0; i < num_trans; i++)
-			{
-				unlock_account(&(accounts[trans_accounts[i]]));
-			}
-		}
-		/*invalid command*/
-		else
-		{
-			printf("%s\n", cmd.command);
-			fprintf(stderr, "%d INVALID REQUEST FORMAT\n", cmd.id);
-		}
-		/*free command*/
-		free(cmd.command);
-		for(i = 0; i < num_tokens; i++)
-		{
-			free(cmd_tokens[i]);
-		}
-
-		num_tokens = 0;
+		ISF = 0;
 	}
 
 	free(cmd_tokens);
@@ -588,6 +527,7 @@ LinkedCommand next_command()
 		/*set return value*/
 		ret.id = cmd_buffer->head->id;
 		ret.command = malloc(MAX_COMMAND_SIZE * sizeof(char));
+		ret.timestamp = cmd_buffer->head->timestamp;
 		strncpy(ret.command, cmd_buffer->head->command, 
 			MAX_COMMAND_SIZE);
 		ret.next = NULL;
@@ -639,6 +579,7 @@ int add_command(char * given_command, int id)
 	new_tail->command = malloc(MAX_COMMAND_SIZE * sizeof(char));
 	strncpy(new_tail->command, given_command, MAX_COMMAND_SIZE);
 	new_tail->id = id;
+	gettimeofday(&(new_tail->timestamp), NULL);
 	new_tail->next = NULL;
 
 	/*lock command_buffer*/

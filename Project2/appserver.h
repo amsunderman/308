@@ -26,6 +26,11 @@
 #include "Bank.h"
 #endif
 
+#ifndef TIME
+#define TIME
+#include <sys/time.h>
+#endif
+
 /*structure used to store a mutex lock associated with each bank account*/
 typedef struct account_struct
 {
@@ -38,6 +43,7 @@ typedef struct LinkedCommand_struct
 {
 	char * command;
 	int id;
+	struct timeval timestamp;
 	struct LinkedCommand_struct * next;
 	
 }LinkedCommand;
