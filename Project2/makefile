@@ -6,17 +6,21 @@
 CC=gcc
 
 #all exectubles
-ALL=appserver
+ALL=appserver appserver-coarse
 
 all: $(ALL)
 
 #executables
 appserver: appserver.o Bank.o
 	$(CC) -pthread -g -o appserver appserver.o Bank.o
+appserver-coarse:appserver-coarse.o Bank.o
+	$(CC) -pthread -g -o appserver-coarse appserver-coarse.o Bank.o
 
 #object files
 appserver.o: appserver.c
-	$(CC) -pthread -g -c appserver.c
+	$(CC) -g -c appserver.c
+appserver-coarse.o: appserver-coarse.c
+	$(CC) -g -c appserver-coarse.c
 Bank.o: Bank.c
 	$(CC) -g -c Bank.c
 
