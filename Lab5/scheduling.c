@@ -159,7 +159,95 @@ void first_come_first_served(struct process *proc)
 
 void shortest_remaining_time(struct process *proc)
 {
-  /* Implement scheduling algorithm here */
+	/*counters*/
+	int i, j;
+
+	/*int to store running total of completion time*/
+	int completiontime_running_total = 0;
+
+	/*int to store average completion time*/
+	int avg_completion_time;
+
+	/*int to store system time*/
+	int sys_time = 0;
+
+	/*keep track of first come*/
+	int shortest_remaining_time;
+
+	/*loop through num processes to execute them*/
+	for(i = 0; i < NUM_PROCESSES; i++)
+	{
+		/*initialize shortest_remaining_time*/
+		shortest_remaining_time = -1;
+
+		/*loop through and find shortest remaining time*/
+		for(j = 0; j < NUM_PROCESSES; j++)
+		{
+			/*if shortest_remaining time hasn't been set, the 
+			* current process has arrived (arrival time <= system 
+			* time) then overwrite it, and the current process 
+			* hasn't finished*/
+			if(shortest_remaining_time < 0 && proc[j].arrivaltime 
+				<= sys_time && !proc[j].flag)
+			{
+				shortest_remaining_time = j;
+			}
+
+			/*else if shortest remaining time has been set, the 
+			current process has arrived, the current process 
+			runtime is shorter than shortest remaining time, and 
+			current process hasn't finished than overwrite it*/
+			else if(shortest_remaining_time >= 0 && 
+				proc[j].arrivaltime <= sys_time && 
+				proc[j].runtime < 
+				proc[shortest_remaining_time].runtime && 
+				!proc[j].flag)
+			{
+				shortest_remaining_time = j;
+			}
+		}
+
+		/*if no process was found advance system time and continue*/
+		if(shortest_remaining_time < 0)
+		{
+			sys_time++;
+			i--;
+			continue;
+		}
+
+		/*execute process*/
+		/*set shortest_remaining_time start time*/
+		proc[shortest_remaining_time].starttime = sys_time;
+
+		/*advance system time*/
+		sys_time += proc[shortest_remaining_time].runtime;
+
+		/*set shortest_remaining_time end time*/
+		proc[shortest_remaining_time].endtime = sys_time;
+
+		/*keep track of completion time running total*/
+		completiontime_running_total += (
+			proc[shortest_remaining_time].endtime - 
+			proc[shortest_remaining_time].arrivaltime);
+
+		/*mark shortest_remaining_time as completed*/
+		proc[shortest_remaining_time].flag = 1;
+
+		/*print process star and finish*/
+		printf("Process %d started at time %d\n", 
+			shortest_remaining_time, 
+			proc[shortest_remaining_time].starttime);
+		printf("Process %d finished at time %d\n", 
+			shortest_remaining_time, 
+			proc[shortest_remaining_time].endtime);
+	}
+
+	/*calculate average completion time*/
+	avg_completion_time = completiontime_running_total/NUM_PROCESSES;
+
+	/*print out average arrival to finish time*/
+	printf("Average time from arrival to completion is %d seconds\n", 
+		avg_completion_time);
 }
 
 void round_robin(struct process *proc)
