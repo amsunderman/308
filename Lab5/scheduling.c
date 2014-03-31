@@ -5,6 +5,9 @@
 * scheduling.c
 *******************************************************************************/
 
+#include <stdio.h>
+#include <string.h>
+
 #define NUM_PROCESSES 20
 
 struct process
@@ -77,7 +80,81 @@ int main()
 
 void first_come_first_served(struct process *proc)
 {
-  /* Implement scheduling algorithm here */
+	/*counters*/
+	int i, j;
+
+	/*int to store running total of completion time*/
+	int completiontime_running_total = 0;
+
+	/*int to store average completion time*/
+	int avg_completion_time;
+
+	/*int to store system time*/
+	int sys_time = 0;
+
+	/*keep track of first come*/
+	int first_come;
+
+	/*loop through num processes to execute them*/
+	for(i = 0; i < NUM_PROCESSES; i++)
+	{
+		/*initialize first_come*/
+		first_come = i;
+
+		/*loop through and find first come*/
+		for(j = 0; j < NUM_PROCESSES; j++)
+		{
+			/*if first_come is already complete (flag = 1) then 
+ 			* overwrite it*/
+			if(proc[first_come].flag)
+			{
+				first_come = j;
+			}
+
+			/*if first_come arrival time is after current process 
+ 			* and current process hasn't been executed (flag = 0) 
+ 			* then overwrite it*/
+			else if(proc[first_come].arrivaltime > 
+				proc[j].arrivaltime && !proc[j].flag)
+			{
+				first_come = j;
+			}
+		}
+
+		/*advance system time if it hasn't caught up to arrival time*/
+		if(sys_time < proc[first_come].arrivaltime)
+			sys_time = proc[first_come].arrivaltime;
+
+		/*execute process*/
+		/*set first_come start time*/
+		proc[first_come].starttime = sys_time;
+
+		/*advance system time*/
+		sys_time += proc[first_come].runtime;
+
+		/*set first_come end time*/
+		proc[first_come].endtime = sys_time;
+
+		/*keep track of completion time running total*/
+		completiontime_running_total += (proc[first_come].endtime - 
+			proc[first_come].arrivaltime);
+
+		/*mark first_come as completed*/
+		proc[first_come].flag = 1;
+
+		/*print process star and finish*/
+		printf("Process %d started at time %d\n", first_come, 
+			proc[first_come].starttime);
+		printf("Process %d finished at time %d\n", first_come, 
+			proc[first_come].endtime);
+	}
+
+	/*calculate average completion time*/
+	avg_completion_time = completiontime_running_total/NUM_PROCESSES;
+
+	/*print out average arrival to finish time*/
+	printf("Average time from arrival to completion is %d seconds\n", 
+		avg_completion_time);
 }
 
 void shortest_remaining_time(struct process *proc)
