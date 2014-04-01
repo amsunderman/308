@@ -38,7 +38,7 @@ int main()
 
   /* Seed random number generator */
   /*srand(time(0));*/  /* Use this seed to test different scenarios */
-  srand(0xC0FFEE);     /* Used for test to be printed out */
+  srand(0x333333);     /* Used for test to be printed out */
 
   /* Initialize process structures */
   for(i=0; i<NUM_PROCESSES; i++)
@@ -252,7 +252,95 @@ void shortest_remaining_time(struct process *proc)
 
 void round_robin(struct process *proc)
 {
-  /* Implement scheduling algorithm here */
+	/*counters*/
+	int i, j = 0;
+
+	/*int to store which process id we searched first at current system 
+	* time*/
+	int start_j = 0;
+
+	/*int to store running total of completion time*/
+	int comptime_running_total = 0;
+
+	/*int to store average completion time*/
+	int avg_completion_time;
+
+	/*int to store system time*/
+	int sys_time = 0;
+
+	/*int that is 0 until a job completes*/
+	int proc_finished;
+
+	/*loop through till all processes have completed*/
+	for(i = 0; i < NUM_PROCESSES; i++)
+	{
+		/*initialize proc_finished*/
+		proc_finished = 0;
+
+		while(!proc_finished)
+		{
+			/*if proc[j] has arrived and has not completed then run 
+			* it for 1 second*/
+			if(proc[j].arrivaltime <= sys_time && proc[j].flag != 2)
+			{
+				/*if proc[j] just started running initialize
+				* it*/
+				if(!proc[j].flag)
+				{
+					proc[j].flag = 1; /*process started*/
+					proc[j].starttime = sys_time;
+					proc[j].remainingtime = proc[j].runtime 
+						- 1;
+				}
+
+				/*else update process*/
+				else
+				{
+					proc[j].remainingtime--;
+
+					/*if proc is finished update proc*/
+					if(!proc[j].remainingtime)
+					{
+						/*process has completed*/
+						proc[j].flag = 2;
+						proc[j].endtime = sys_time + 1;
+						proc_finished = 1;
+						comptime_running_total += 
+							(proc[j].endtime - 
+							proc[j].arrivaltime);
+						printf("Process %d started at " 
+							"time %d\n", j, 
+							proc[j].starttime);
+						printf("Process %d finished " 
+							"at time %d\n", j, 
+							proc[j].endtime);
+					}
+				}
+
+				/*update j and increment system time*/
+				j = (j < (NUM_PROCESSES-1)) ? (j+1) : 0;
+				sys_time++;
+				start_j = j;
+			}
+			/*if proc[j] can't be ran*/
+			else
+			{
+				/*update j*/
+				j = (j < (NUM_PROCESSES-1)) ? (j+1) : 0;
+				/*if j = start_j then increment system time 
+				* since no process could be run at this time*/
+				if(j == start_j)
+					sys_time++;
+			}
+		}
+	}
+
+	/*calculate average completion time*/
+	avg_completion_time = comptime_running_total/NUM_PROCESSES;
+
+	/*print out average arrival to finish time*/
+	printf("Average time from arrival to completion is %d seconds\n", 
+		avg_completion_time);
 }
 
 void round_robin_priority(struct process *proc)
