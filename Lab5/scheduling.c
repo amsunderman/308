@@ -38,7 +38,7 @@ int main()
 
   /* Seed random number generator */
   /*srand(time(0));*/  /* Use this seed to test different scenarios */
-  srand(0x333333);     /* Used for test to be printed out */
+  srand(0xC0FFEE);     /* Used for test to be printed out */
 
   /* Initialize process structures */
   for(i=0; i<NUM_PROCESSES; i++)
@@ -345,6 +345,117 @@ void round_robin(struct process *proc)
 
 void round_robin_priority(struct process *proc)
 {
-  /* Implement scheduling algorithm here */
+	/*counters*/
+	int i, j = 0;
+
+	/*int to store which process id we searched first at current system 
+	* time*/
+	int start_j = 0;
+
+	/*int to store running total of completion time*/
+	int comptime_running_total = 0;
+
+	/*int to store average completion time*/
+	int avg_completion_time;
+
+	/*int to store system time*/
+	int sys_time = 0;
+
+	/*int that is 0 until a job completes*/
+	int proc_finished;
+
+	/*int that stores highest priority*/
+	int high_p;
+
+	/*int that stores last executed process*/
+	int last_executed = 0;
+
+	/*loop through till all processes have completed*/
+	for(i = 0; i < NUM_PROCESSES; i++)
+	{
+		/*initialize proc_finished*/
+		proc_finished = 0;
+
+		while(!proc_finished)
+		{
+			/*initialize high_p*/
+			high_p = -1;
+
+			do {
+			/*if proc[j] has arrived, is not done, and highest 
+			* priority has not been set, set highest priority*/
+			if(proc[j].arrivaltime <= sys_time && high_p < 0 
+				&& proc[j].flag < 2)
+			{
+				high_p = j;
+			}
+
+			/*if proc[j] has arrived, is not done, and is of higher 
+			*priority than highest priority, update high_p*/
+			else if(proc[j].arrivaltime <= sys_time && 
+				proc[j].flag < 2 && proc[j].priority > 
+				proc[high_p].priority)
+			{
+				high_p = j;
+			}
+			j = (j < (NUM_PROCESSES-1)) ? (j+1) : 0;
+			}while(j != start_j);
+
+			/*if highest_priority has been set execute*/
+			if(high_p > -1)
+			{
+				last_executed = high_p;
+				/*if high_p just started running 
+				* initialize it*/
+				if(!proc[high_p].flag)
+				{
+					/*process started*/
+					proc[high_p].flag = 1;
+					proc[high_p].starttime = 
+						sys_time;
+					proc[high_p].remainingtime = 
+						proc[high_p].runtime - 1;
+				}
+
+				/*else update process*/
+				else
+				{
+					proc[high_p].remainingtime--;
+
+					/*if proc is finished update proc*/
+					if(!proc[high_p].remainingtime)
+					{
+					/*process has completed*/
+					proc[high_p].flag = 2;
+					proc[high_p].endtime = sys_time + 1;
+					proc_finished = 1;
+					comptime_running_total += (
+						proc[high_p].endtime - 
+						proc[high_p].arrivaltime);
+					printf("Process %d started at " 
+						"time %d\n", high_p, 
+						proc[high_p].starttime);
+					printf("Process %d finished " 
+						"at time %d\n", high_p, 
+						proc[high_p].endtime);
+					}
+				}
+			}
+			/*increment system time and set j to search from current
+			* highest priority job*/
+			sys_time++;
+			if(last_executed == NUM_PROCESSES - 1)
+				start_j = j = 0;
+			else
+				start_j = j = (last_executed + 1);
+		}
+	}
+
+	/*calculate average completion time*/
+	avg_completion_time = comptime_running_total/NUM_PROCESSES;
+
+	/*print out average arrival to finish time*/
+	printf("Average time from arrival to completion is %d seconds\n", 
+		avg_completion_time);
 }
 
