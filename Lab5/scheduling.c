@@ -38,7 +38,7 @@ int main()
 
   /* Seed random number generator */
   /*srand(time(0));*/  /* Use this seed to test different scenarios */
-  srand(0xC0FFEE);     /* Used for test to be printed out */
+  srand(0x333333);     /* Used for test to be printed out */
 
   /* Initialize process structures */
   for(i=0; i<NUM_PROCESSES; i++)

@@ -283,7 +283,7 @@ int PRAlgo_LRU(const PageFrame * PageFrames, int num_frames, const int * PageAcc
     int index_lru = 0;
     int i;
     
-  
+    /*look for least recently used page and mark it*/
     for(i = 1; i < num_frames; i++)
     {
         if(PageFrames[i].time_of_access < lru)
@@ -303,19 +303,26 @@ int PRAlgo_OPT(const PageFrame * PageFrames, int num_frames, const int * PageAcc
     int i, j;
     int marked[num_frames];
     
+    /*initialize marked array*/
     for(i = 0; i < num_frames; i++)
     {
         marked[i] = 0;
     }
     
+    /*loop through future page requests*/
     for(i = current_access; i < num_accesses; i++)
     {
+        /*set done checking*/
         donechecking = 1;
+        /*loop through frames*/
         for(j = 0; j < num_frames; j++)
         {
+            /*if !marked (we haven't seen it yet)*/
             if(!marked[j])
             {
+                /*we are not done checking if we found an unmarked page*/
                 donechecking = 0;
+                /*if we have found our page in the future then set it as opt index*/
                 if(PageFrames[j].page_id == PageAccesses[i])
                 {
                     index_opt = j;
@@ -323,10 +330,12 @@ int PRAlgo_OPT(const PageFrame * PageFrames, int num_frames, const int * PageAcc
                 }
             }
         }
+        /*if all pages are marked then we are done*/
         if(donechecking)
             break;
     }
     
+    /*look for unmarked page, if there is one then return it*/
     for(i = 0; i < num_frames; i++)
     {
         if(!marked[i])
@@ -346,6 +355,7 @@ int PRAlgo_CUST(const PageFrame * PageFrames, int num_frames, const int * PageAc
     static int init = 0;
     int i;
     
+    /*initialize call count on first call to this function*/
     if(!init)
     {
         for(i = 0; i < NUM_PAGES; i++)
@@ -355,6 +365,7 @@ int PRAlgo_CUST(const PageFrame * PageFrames, int num_frames, const int * PageAc
         init = 1;
     }
   
+    /*loop through and keep track of lru index and high call count index*/
     for(i = 1; i < num_frames; i++)
     {
         if(PageFrames[i].time_of_access < lru.time_of_access)
@@ -369,6 +380,7 @@ int PRAlgo_CUST(const PageFrame * PageFrames, int num_frames, const int * PageAc
         }
     }
     
+    /*return the index that is furthest out in the future between high call count and lru*/
     for(i = current_access; i < num_accesses; i++)
     {
         if(PageAccesses[i] == lru.page_id)

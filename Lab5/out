@@ -1,0 +1,1097 @@
+# 1 "pset.c"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "pset.c"
+# 44 "pset.c"
+# 1 "/usr/include/linux/sched.h" 1 3 4
+# 45 "pset.c" 2
+
+
+
+# 1 "/usr/include/linux/fs.h" 1 3 4
+# 9 "/usr/include/linux/fs.h" 3 4
+# 1 "/usr/include/linux/limits.h" 1 3 4
+# 10 "/usr/include/linux/fs.h" 2 3 4
+# 1 "/usr/include/linux/ioctl.h" 1 3 4
+
+
+
+# 1 "/usr/include/asm/ioctl.h" 1 3 4
+# 1 "/usr/include/asm-generic/ioctl.h" 1 3 4
+# 1 "/usr/include/asm/ioctl.h" 2 3 4
+# 5 "/usr/include/linux/ioctl.h" 2 3 4
+# 11 "/usr/include/linux/fs.h" 2 3 4
+# 1 "/usr/include/linux/blk_types.h" 1 3 4
+# 68 "/usr/include/linux/blk_types.h" 3 4
+enum bio_rw_flags {
+ BIO_RW,
+ BIO_RW_FAILFAST_DEV,
+ BIO_RW_FAILFAST_TRANSPORT,
+ BIO_RW_FAILFAST_DRIVER,
+
+ BIO_RW_AHEAD,
+ BIO_RW_BARRIER,
+ BIO_RW_SYNCIO,
+ BIO_RW_UNPLUG,
+ BIO_RW_META,
+ BIO_RW_DISCARD,
+ BIO_RW_NOIDLE,
+
+
+
+
+ BIO_RW_FLUSH,
+ BIO_RW_FUA,
+
+
+
+
+ BIO_RW_THROTTLED,
+};
+# 105 "/usr/include/linux/blk_types.h" 3 4
+enum rq_flag_bits {
+ __REQ_WRITE,
+ __REQ_FAILFAST_DEV,
+ __REQ_FAILFAST_TRANSPORT,
+ __REQ_FAILFAST_DRIVER,
+
+ __REQ_DISCARD,
+ __REQ_SORTED,
+ __REQ_SOFTBARRIER,
+ __REQ_HARDBARRIER,
+ __REQ_FUA,
+ __REQ_NOMERGE,
+ __REQ_STARTED,
+ __REQ_DONTPREP,
+ __REQ_QUEUED,
+ __REQ_ELVPRIV,
+ __REQ_FAILED,
+ __REQ_QUIET,
+ __REQ_PREEMPT,
+ __REQ_ORDERED_COLOR,
+ __REQ_SYNC,
+ __REQ_ALLOCED,
+ __REQ_META,
+ __REQ_COPY_USER,
+ __REQ_INTEGRITY,
+ __REQ_NOIDLE,
+ __REQ_IO_STAT,
+ __REQ_MIXED_MERGE,
+ __REQ_FLUSH,
+ __REQ_FLUSH_SEQ,
+ __REQ_NR_BITS,
+};
+# 12 "/usr/include/linux/fs.h" 2 3 4
+# 1 "/usr/include/linux/types.h" 1 3 4
+
+
+
+# 1 "/usr/include/asm/types.h" 1 3 4
+
+
+
+# 1 "/usr/include/asm-generic/types.h" 1 3 4
+
+
+
+
+
+
+# 1 "/usr/include/asm-generic/int-ll64.h" 1 3 4
+# 11 "/usr/include/asm-generic/int-ll64.h" 3 4
+# 1 "/usr/include/asm/bitsperlong.h" 1 3 4
+# 10 "/usr/include/asm/bitsperlong.h" 3 4
+# 1 "/usr/include/asm-generic/bitsperlong.h" 1 3 4
+# 11 "/usr/include/asm/bitsperlong.h" 2 3 4
+# 12 "/usr/include/asm-generic/int-ll64.h" 2 3 4
+
+
+
+
+
+
+
+typedef __signed__ char __s8;
+typedef unsigned char __u8;
+
+typedef __signed__ short __s16;
+typedef unsigned short __u16;
+
+typedef __signed__ int __s32;
+typedef unsigned int __u32;
+
+
+__extension__ typedef __signed__ long long __s64;
+__extension__ typedef unsigned long long __u64;
+# 8 "/usr/include/asm-generic/types.h" 2 3 4
+
+
+
+typedef unsigned short umode_t;
+# 5 "/usr/include/asm/types.h" 2 3 4
+# 5 "/usr/include/linux/types.h" 2 3 4
+
+
+
+# 1 "/usr/include/linux/posix_types.h" 1 3 4
+
+
+
+# 1 "/usr/include/linux/stddef.h" 1 3 4
+# 5 "/usr/include/linux/posix_types.h" 2 3 4
+# 36 "/usr/include/linux/posix_types.h" 3 4
+typedef struct {
+ unsigned long fds_bits [(1024/(8 * sizeof(unsigned long)))];
+} __kernel_fd_set;
+
+
+typedef void (*__kernel_sighandler_t)(int);
+
+
+typedef int __kernel_key_t;
+typedef int __kernel_mqd_t;
+
+# 1 "/usr/include/asm/posix_types.h" 1 3 4
+
+
+
+# 1 "/usr/include/asm/posix_types_64.h" 1 3 4
+# 10 "/usr/include/asm/posix_types_64.h" 3 4
+typedef unsigned long __kernel_ino_t;
+typedef unsigned int __kernel_mode_t;
+typedef unsigned long __kernel_nlink_t;
+typedef long __kernel_off_t;
+typedef int __kernel_pid_t;
+typedef int __kernel_ipc_pid_t;
+typedef unsigned int __kernel_uid_t;
+typedef unsigned int __kernel_gid_t;
+typedef unsigned long __kernel_size_t;
+typedef long __kernel_ssize_t;
+typedef long __kernel_ptrdiff_t;
+typedef long __kernel_time_t;
+typedef long __kernel_suseconds_t;
+typedef long __kernel_clock_t;
+typedef int __kernel_timer_t;
+typedef int __kernel_clockid_t;
+typedef int __kernel_daddr_t;
+typedef char * __kernel_caddr_t;
+typedef unsigned short __kernel_uid16_t;
+typedef unsigned short __kernel_gid16_t;
+
+
+typedef long long __kernel_loff_t;
+
+
+typedef struct {
+ int val[2];
+} __kernel_fsid_t;
+
+typedef unsigned short __kernel_old_uid_t;
+typedef unsigned short __kernel_old_gid_t;
+typedef __kernel_uid_t __kernel_uid32_t;
+typedef __kernel_gid_t __kernel_gid32_t;
+
+typedef unsigned long __kernel_old_dev_t;
+# 5 "/usr/include/asm/posix_types.h" 2 3 4
+# 48 "/usr/include/linux/posix_types.h" 2 3 4
+# 9 "/usr/include/linux/types.h" 2 3 4
+# 27 "/usr/include/linux/types.h" 3 4
+typedef __u16 __le16;
+typedef __u16 __be16;
+typedef __u32 __le32;
+typedef __u32 __be32;
+typedef __u64 __le64;
+typedef __u64 __be64;
+
+typedef __u16 __sum16;
+typedef __u32 __wsum;
+# 13 "/usr/include/linux/fs.h" 2 3 4
+# 37 "/usr/include/linux/fs.h" 3 4
+struct fstrim_range {
+ __u64 start;
+ __u64 len;
+ __u64 minlen;
+};
+
+
+struct files_stat_struct {
+ unsigned long nr_files;
+ unsigned long nr_free_files;
+ unsigned long max_files;
+};
+
+struct inodes_stat_t {
+ int nr_inodes;
+ int nr_unused;
+ int dummy[5];
+};
+# 49 "pset.c" 2
+
+
+
+# 1 "/usr/include/linux/kernel.h" 1 3 4
+# 11 "/usr/include/linux/kernel.h" 3 4
+struct sysinfo {
+ long uptime;
+ unsigned long loads[3];
+ unsigned long totalram;
+ unsigned long freeram;
+ unsigned long sharedram;
+ unsigned long bufferram;
+ unsigned long totalswap;
+ unsigned long freeswap;
+ unsigned short procs;
+ unsigned short pad;
+ unsigned long totalhigh;
+ unsigned long freehigh;
+ unsigned int mem_unit;
+ char _f[20-2*sizeof(long)-sizeof(int)];
+};
+# 67 "/usr/include/linux/kernel.h" 3 4
+struct module;
+
+void mark_hardware_unsupported(const char *msg);
+void mark_tech_preview(const char *msg, struct module *mod);
+# 53 "pset.c" 2
+
+
+# 1 "pset.h" 1
+# 13 "pset.h"
+typedef int psetid_t;
+
+typedef int id_t;
+# 31 "pset.h"
+typedef enum
+
+{
+
+  P_ALL,
+
+  P_PID,
+
+  P_PGID
+
+} idtype_t;
+
+
+
+typedef enum pset_request {
+
+ PSET_GETTICKS = 0,
+
+        PSET_GETNUMPSETS = 1,
+
+        PSET_GETFIRSTPSET = 2,
+
+        PSET_GETNEXTPSET = 3,
+
+        PSET_GETCURRENTPSET = 4,
+
+        PSET_GETNUMSPUS = 5,
+
+        PSET_GETFIRSTSPU = 6,
+
+        PSET_GETNEXTSPU = 7,
+
+        PSET_SPUTOPSET = 8
+
+} pset_request_t ;
+
+
+
+typedef enum pset_attrval {
+
+        PSET_ATTRVAL_DEFAULT = 0,
+
+        PSET_ATTRVAL_ALLOW = 1,
+
+        PSET_ATTRVAL_DISALLOW = 2,
+
+        PSET_ATTRVAL_FAIL = 3,
+
+        PSET_ATTRVAL_FAILBUSY = 4,
+
+        PSET_ATTRVAL_DFLTPSET = 5,
+
+        PSET_ATTRVAL_KILL = 6,
+
+        PSET_ATTRVAL_STOP = 7
+
+} pset_attrval_t ;
+
+
+
+typedef enum pset_attrtype {
+
+        PSET_ATTR_OWNID = 1,
+
+        PSET_ATTR_GRPID = 2,
+
+        PSET_ATTR_PERM = 3,
+
+        PSET_ATTR_IOINTR = 4,
+
+        PSET_ATTR_NONEMPTY = 5,
+
+        PSET_ATTR_EMPTY = 6,
+
+        PSET_ATTR_LASTSPU = 7
+
+} pset_attrtype_t ;
+# 129 "pset.h"
+typedef psetid_t * pset_create_t;
+
+typedef psetid_t pset_destroy_t;
+
+
+
+typedef struct pset_assign_args {
+
+        psetid_t pset;
+
+        int spu;
+
+        psetid_t *opset;
+
+} pset_assign_t;
+
+
+
+typedef struct pset_bind_args {
+
+        psetid_t pset;
+
+        idtype_t idtype;
+
+        id_t id;
+
+        psetid_t *opset;
+
+} pset_bind_t;
+
+
+
+typedef struct pset_getattr_args {
+
+        psetid_t pset;
+
+        pset_attrtype_t type;
+
+        pset_attrval_t *value;
+
+} pset_getattr_t;
+
+
+
+typedef struct pset_setattr_args {
+
+        psetid_t pset;
+
+        pset_attrtype_t type;
+
+        pset_attrval_t value;
+
+} pset_setattr_t;
+
+
+
+typedef struct pset_ctl_args {
+
+        pset_request_t req;
+
+        psetid_t pset;
+
+        id_t id;
+
+} pset_ctl_t;
+# 56 "pset.c" 2
+
+
+typedef struct processor_set_priv {
+ psetid_t ps_id;
+        int ps_spu_count;
+ unsigned long ps_cpus_allowed;
+        pset_attrval_t ps_non_empty_op;
+        struct sched_policy* ps_next;
+        struct sched_policy* ps_prev;
+} processor_set_priv_t;
+
+
+
+static struct task_struct * pset_choose_task(struct task_struct *, int);
+static struct sched_policy *default_pset = ((void *)0);
+static int psets_active = 0;
+static rwlock_t psetlist_lock = RW_LOCK_UNLOCKED;
+static psetid_t max_ps_id = 0x8000;
+static struct sched_policy *pset_of_cpu[NR_CPUS];
+
+static int pset_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
+
+struct file_operations pset_fops = {
+ ioctl: pset_ioctl
+};
+# 111 "pset.c"
+static struct task_struct *
+pset_choose_task(struct task_struct *curr_task, int this_cpu)
+{
+        int high;
+        struct task_struct *p, *choice, *idle = idle_task(this_cpu);
+ struct list_head *tmp;
+# 126 "pset.c"
+recheck:
+ high = IDLE_WEIGHT;
+ choice = idle;
+
+
+ if ((curr_task->state == TASK_RUNNING) && ((curr_task)->cpus_allowed & (1 << this_cpu))){
+  high = goodness(curr_task, this_cpu, curr_task->active_mm);
+  if (high >= 0)
+   choice = curr_task;
+ }
+
+
+ list_for_each(tmp, &runqueue_head)
+ {
+  p = list_entry(tmp, struct task_struct, run_list);
+  if (((p)->cpus_allowed & (1 << this_cpu))) {
+   int w = goodness(p, this_cpu, curr_task->active_mm);
+   if (w > high){
+    high = w;
+    choice = p;
+   }
+  }
+ }
+
+
+ if (!high){
+  list_for_each(tmp, &runqueue_head)
+  {
+   p = list_entry(tmp, struct task_struct, run_list);
+   if (((p)->cpus_allowed & (1 << this_cpu)))
+    p->counter = NICE_TO_TICKS(p->nice);
+  }
+  goto recheck;
+ }
+
+ return choice;
+}
+
+
+
+
+
+int __init
+pset_init(void)
+{
+ int i, limit, rc = 0;
+        struct task_struct *p;
+ struct sched_policy *new;
+
+ if (psets_active > 0)
+  return 0;
+
+
+
+        new = kmalloc(sizeof(struct sched_policy)+sizeof(processor_set_priv_t), GFP_KERNEL);
+        if (!new)
+                return -ENOMEM;
+
+ memset(new,0, sizeof(struct sched_policy)+sizeof(processor_set_priv_t));
+ new->sp_choose_task = pset_choose_task;
+
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_id = ((psetid_t) 0);
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_non_empty_op = PSET_ATTRVAL_FAILBUSY;
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_spu_count = NR_CPUS;
+        ((processor_set_priv_t *)(&(new)->sp_private))->ps_cpus_allowed = 0;
+
+ default_pset = new;
+
+
+
+
+
+ limit = 1;
+
+
+        for (i = 0; i < limit; i++) {
+                int cpu;
+  cpu = cpu_logical_map(i);
+  pset_of_cpu[cpu] = default_pset;
+                ((processor_set_priv_t *)(&(new)->sp_private))->ps_cpus_allowed |= (1 << cpu);
+ }
+
+ if (register_sched ("pset 2.0", pset_of_cpu, &pset_fops)){
+  printk("pset: unable to register\n");
+  return -EIO;
+ }
+
+
+        read_lock(&tasklist_lock);
+        for_each_task(p){
+                p->alt_policy = default_pset;
+ }
+        read_unlock(&tasklist_lock);
+
+ ((processor_set_priv_t *)(&(default_pset)->sp_private))->ps_spu_count = limit;
+ psets_active = 1;
+
+ return rc;
+}
+# 252 "pset.c"
+static int
+pset_create ( psetid_t *pset )
+{
+
+
+        int retval = 0;
+ struct sched_policy *new, *next, *curr_pset;
+
+ if (!capable(CAP_SYS_ADMIN))
+                return -EPERM;
+
+ if (!pset)
+  return -EFAULT;
+
+ if (psets_active + 1 > max_ps_id)
+                return -ENOMEM;
+
+
+        new = kmalloc(sizeof(struct sched_policy)+sizeof(processor_set_priv_t), GFP_KERNEL);
+        if (!new)
+                return -ENOMEM;
+
+ memset(new,0, sizeof(struct sched_policy)+sizeof(processor_set_priv_t));
+ new->sp_choose_task = default_pset->sp_choose_task;
+ new->sp_preemptability = default_pset->sp_preemptability;
+
+        write_lock_irq(&psetlist_lock);
+
+ curr_pset = default_pset;
+ next = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next;
+
+
+ while (next){
+  if (((processor_set_priv_t *)(&(next)->sp_private))->ps_id - ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_id > 1){
+   ((processor_set_priv_t *)(&(next)->sp_private))->ps_prev = new;
+   break;
+  }
+  curr_pset = next;
+  next = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next;
+ }
+
+
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_id = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_id + 1;
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_non_empty_op = PSET_ATTRVAL_DFLTPSET;
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_spu_count = 0;
+
+
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_next = next;
+ ((processor_set_priv_t *)(&(new)->sp_private))->ps_prev = curr_pset;
+ ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next = new;
+
+ *pset = ((processor_set_priv_t *)(&(new)->sp_private))->ps_id;
+ psets_active++;
+# 313 "pset.c"
+ write_unlock_irq(&psetlist_lock);
+ return retval;
+}
+
+static int
+pset_destroy ( psetid_t pset )
+{
+
+
+
+
+
+ int retval = 0;
+ struct sched_policy *curr_pset;
+        struct task_struct *p;
+        unsigned long belongs;
+
+ if (!capable(CAP_SYS_ADMIN))
+                return -EPERM;
+
+
+ if ((pset <= ((psetid_t) 0)) || (pset >= max_ps_id))
+  return -EINVAL;
+
+        write_lock_irq(&psetlist_lock);
+ curr_pset = default_pset;
+
+
+ while (curr_pset){
+  if (((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_id == pset)
+   break;
+  curr_pset = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next;
+ }
+
+
+
+ if (curr_pset){
+  belongs = ((processor_set_priv_t *)(&(default_pset)->sp_private))->ps_cpus_allowed |
+     ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_cpus_allowed;
+
+  if (((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_non_empty_op == PSET_ATTRVAL_FAILBUSY){
+
+
+          read_lock(&tasklist_lock);
+          for_each_task(p){
+                  if (p->alt_policy == curr_pset){
+     retval = -EBUSY;
+     break;
+    }
+   }
+          read_unlock(&tasklist_lock);
+
+   if (retval){
+
+    write_unlock_irq(&psetlist_lock);
+    return retval;
+   }
+
+
+   if (((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_spu_count > 0){
+           read_lock(&tasklist_lock);
+           for_each_task(p){
+                   if (p->alt_policy == default_pset)
+      p->cpus_allowed = belongs;
+    }
+                  read_unlock(&tasklist_lock);
+   }
+  } else {
+   int kill = 0;
+
+   if (((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_non_empty_op == PSET_ATTRVAL_KILL)
+    kill = 1;
+
+                 read_lock(&tasklist_lock);
+
+
+
+
+                 for_each_task(p){
+                         if (p->alt_policy == curr_pset){
+                                 p->alt_policy = default_pset;
+     p->cpus_allowed = belongs;
+
+                                 if (kill &&
+         (p->pid > 1) && (p->mm != &init_mm))
+                                         force_sig(SIGKILL, p);
+    } else if (p->alt_policy == default_pset)
+                                         p->cpus_allowed = belongs;
+                        }
+                 read_unlock(&tasklist_lock);
+  }
+# 423 "pset.c"
+  if (((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next)
+   ((processor_set_priv_t *)(&(((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next)->sp_private))->ps_prev = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_prev;
+  if (((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_prev)
+   ((processor_set_priv_t *)(&(((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_prev)->sp_private))->ps_next = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next;
+  ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_prev = ((void *)0);
+  kfree (curr_pset);
+  psets_active--;
+
+
+
+
+
+
+ } else retval = -ESRCH;
+
+ write_unlock_irq(&psetlist_lock);
+ return retval;
+}
+
+static inline struct sched_policy *
+find_pset(psetid_t ps_id)
+{
+
+
+
+
+ struct sched_policy *curr_pset = default_pset;
+ while (curr_pset){
+  if (((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_id == ps_id)
+   break;
+  curr_pset = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_next;
+ }
+ return curr_pset;
+}
+
+static inline int
+find_spu(int id, struct sched_policy *pset_ptr)
+{
+# 478 "pset.c"
+ if ((id <0) && (pset_of_cpu[0] == pset_ptr))
+  return 0;
+
+ return -EAGAIN;
+}
+
+static int
+pset_assign ( psetid_t pset, int spu, psetid_t* opset)
+{
+
+
+
+
+
+
+
+ if ((pset != -1) && !capable(CAP_SYS_ADMIN))
+                return -EPERM;
+
+ if ((pset < -1) || (pset > max_ps_id))
+  return -EINVAL;
+
+ if ((spu < 0) || (spu >= NR_CPUS))
+  return -EINVAL;
+# 565 "pset.c"
+ if (pset == -1){
+  *opset = ((psetid_t) 0);
+  return 0;
+ }
+ return -EBUSY;
+
+}
+
+static inline int
+pset_move(struct task_struct *p, struct sched_policy *newpolicy)
+{
+# 584 "pset.c"
+ if (p->alt_policy != newpolicy){
+         p->alt_policy = newpolicy;
+
+
+
+
+
+  if (p == current)
+
+   resched_cpu(p->processor);
+  if (!((processor_set_priv_t *)(&(newpolicy)->sp_private))->ps_spu_count)
+   p->counter = 0;
+ }
+        return 0;
+}
+
+static int
+pset_bind ( psetid_t pset, idtype_t idtype, id_t id, psetid_t *opset)
+{
+
+
+ struct sched_policy *curr_pset;
+ int retval = -ESRCH;
+        struct task_struct *p;
+
+ if (pset == -1){
+  if (id == -1){
+   *opset = ((processor_set_priv_t *)(&(current->alt_policy)->sp_private))->ps_id;
+   retval = 0;
+  } else {
+   read_lock(&tasklist_lock);
+   p = find_task_by_pid(id);
+   if (p){
+    *opset = ((processor_set_priv_t *)(&(p->alt_policy)->sp_private))->ps_id;
+    retval = 0;
+   }
+   read_unlock(&tasklist_lock);
+  }
+  return retval;
+        }
+
+
+
+ if (!capable(CAP_SYS_ADMIN))
+                return -EPERM;
+
+ if ((pset < ((psetid_t) 0)) || (pset > max_ps_id))
+  return -EINVAL;
+
+ if (id < -1)
+  return -EINVAL;
+
+ switch(idtype){
+  case P_PGID:
+   if (id == -1)
+    id = current->pgrp;
+   if ((id == 0) || (id == 1))
+    return -EPERM;
+   break;
+  case P_PID:
+   if (id == -1)
+    id = current->pid;
+   break;
+  default:
+
+   return -EINVAL;
+ }
+
+        read_lock(&psetlist_lock);
+        curr_pset = find_pset(pset);
+
+
+        if (curr_pset){
+         read_lock(&tasklist_lock);
+  switch(idtype){
+  case P_PGID:
+          for_each_task(p){
+    if (p->pgrp == id)
+     retval = pset_move (p, curr_pset);
+   }
+   break;
+  default:
+  case P_PID:
+          for_each_task(p){
+    if (p->pid == id){
+     *opset = ((processor_set_priv_t *)(&(p->alt_policy)->sp_private))->ps_id;
+     retval = pset_move (p, curr_pset);
+    }
+   }
+   break;
+  }
+         read_unlock(&tasklist_lock);
+        }
+        read_unlock(&psetlist_lock);
+
+ return retval;
+}
+
+static int
+pset_getattr ( psetid_t pset, pset_attrtype_t type, pset_attrval_t* value)
+{
+
+
+ struct sched_policy *curr_pset;
+ int retval = 0;
+
+ if ((pset < ((psetid_t) 0)) || (pset >= max_ps_id))
+  return -EINVAL;
+
+ if (!value)
+  return -EFAULT;
+
+ if (type != PSET_ATTR_NONEMPTY)
+  return -EINVAL;
+
+        read_lock(&psetlist_lock);
+ curr_pset = find_pset(pset);
+ if (curr_pset)
+  *value = ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_non_empty_op;
+ else retval = -ESRCH;
+        read_unlock(&psetlist_lock);
+
+ return retval;
+}
+
+static int
+pset_setattr ( psetid_t pset, pset_attrtype_t type, pset_attrval_t value)
+{
+
+
+ struct sched_policy *curr_pset;
+ int retval = 0;
+
+ if (!capable(CAP_SYS_ADMIN))
+                return -EPERM;
+
+
+ if ((pset <= ((psetid_t) 0)) || (pset > max_ps_id))
+  return -EINVAL;
+
+ if (type != PSET_ATTR_NONEMPTY)
+  return -EINVAL;
+
+ if ((value < PSET_ATTRVAL_FAILBUSY) || (value > PSET_ATTRVAL_KILL))
+  return -EINVAL;
+
+        read_lock(&psetlist_lock);
+ curr_pset = find_pset(pset);
+ if (curr_pset)
+  ((processor_set_priv_t *)(&(curr_pset)->sp_private))->ps_non_empty_op = value;
+ else retval = -ESRCH;
+        read_unlock(&psetlist_lock);
+
+ return retval;
+}
+
+static int
+pset_ctl ( pset_request_t req, psetid_t pset, id_t id)
+{
+
+
+ int retval = -EINVAL;
+ struct sched_policy *pset_ptr;
+
+ switch(req){
+        case PSET_GETNUMPSETS:
+  retval = psets_active;
+  break;
+
+        case PSET_GETFIRSTPSET:
+  retval = ((psetid_t) 0);
+  break;
+
+        case PSET_GETNEXTPSET:
+         read_lock(&psetlist_lock);
+         pset_ptr = default_pset;
+         while (pset_ptr){
+                 if (((processor_set_priv_t *)(&(pset_ptr)->sp_private))->ps_id > pset)
+                         break;
+                 pset_ptr = ((processor_set_priv_t *)(&(pset_ptr)->sp_private))->ps_next;
+         }
+  if (!pset_ptr)
+   retval = -ESRCH;
+  else retval = ((processor_set_priv_t *)(&(pset_ptr)->sp_private))->ps_id;
+         read_unlock(&psetlist_lock);
+  break;
+
+        case PSET_GETCURRENTPSET:
+  retval = -ESRCH;
+
+         read_lock(&psetlist_lock);
+  retval = ((processor_set_priv_t *)(&(current->alt_policy)->sp_private))->ps_id;
+         read_unlock(&psetlist_lock);
+  break;
+
+        case PSET_GETNUMSPUS:
+         read_lock(&psetlist_lock);
+  pset_ptr = find_pset(pset);
+  if (pset_ptr){
+   retval = ((processor_set_priv_t *)(&(pset_ptr)->sp_private))->ps_spu_count;
+  } else retval = -ESRCH;
+         read_unlock(&psetlist_lock);
+  break;
+
+        case PSET_GETFIRSTSPU:
+  id = -1;
+
+        case PSET_GETNEXTSPU:
+         read_lock(&psetlist_lock);
+  pset_ptr = find_pset(pset);
+  if (!pset_ptr)
+   retval = -ESRCH;
+  else if (!((processor_set_priv_t *)(&(pset_ptr)->sp_private))->ps_spu_count)
+   retval = -ENOENT;
+                else retval = find_spu(id, pset_ptr);
+
+         read_unlock(&psetlist_lock);
+  break;
+        case PSET_SPUTOPSET:
+# 824 "pset.c"
+  if (id == 0)
+   retval = ((psetid_t) 0);
+
+  break;
+ default :
+
+  break;
+ }
+
+ return retval;
+}
+
+static int
+pset_ioctl(struct inode * inode, struct file * file, unsigned int cmd, unsigned long arg)
+{
+
+
+
+
+ int retval;
+
+ if (cmd > 100)
+  cmd -= 100;
+
+        switch (cmd) {
+ case 1:
+  {
+  psetid_t output;
+
+  retval = pset_create(&output);
+  if (!retval){
+   if (copy_to_user((psetid_t *)arg, &output, sizeof(psetid_t))){
+
+    pset_destroy(retval);
+    retval = -EFAULT;
+   }
+  }
+  break;
+  }
+
+ case 2:
+  retval = pset_destroy(arg);
+  break;
+
+        case 3:
+  {
+  pset_assign_t tmp;
+  psetid_t output;
+
+                if (copy_from_user(&tmp, (pset_assign_t *)arg, sizeof(pset_assign_t)))
+                 return -EFAULT;
+  retval = pset_assign(tmp.pset, tmp.spu, &output);
+  if (!retval){
+   if (copy_to_user(tmp.opset, &output, sizeof(psetid_t)))
+    retval = -EFAULT;
+  }
+  break;
+  }
+
+ case 4:
+  {
+  pset_bind_t tmp;
+  psetid_t output;
+
+                if (copy_from_user(&tmp, (pset_bind_t *)arg, sizeof(pset_bind_t)))
+                 return -EFAULT;
+  retval = pset_bind(tmp.pset, tmp.idtype, tmp.id, &output);
+  if (!retval){
+   if (copy_to_user(tmp.opset, &output, sizeof(psetid_t)))
+    retval = -EFAULT;
+  }
+  break;
+  }
+
+ case 5:
+  {
+  pset_getattr_t tmp;
+  pset_attrval_t output;
+
+                if (copy_from_user(&tmp, (pset_getattr_t *)arg, sizeof(pset_getattr_t)))
+                 return -EFAULT;
+  retval = pset_getattr(tmp.pset, tmp.type, &output);
+  if (!retval){
+   if (copy_to_user(tmp.value, &output, sizeof(pset_attrval_t)))
+    retval = -EFAULT;
+  }
+  break;
+  }
+
+ case 6:
+  {
+  pset_setattr_t tmp;
+
+                if (copy_from_user(&tmp, (pset_setattr_t *)arg, sizeof(pset_setattr_t)))
+                 return -EFAULT;
+  retval = pset_setattr(tmp.pset, tmp.type, tmp.value);
+  break;
+  }
+
+ case 7:
+  {
+  pset_ctl_t tmp;
+
+                if (copy_from_user(&tmp, (pset_ctl_t *)arg, sizeof(pset_ctl_t)))
+                 return -EFAULT;
+  retval = pset_ctl(tmp.req, tmp.pset, tmp.id);
+  break;
+  }
+
+ default:
+  retval = -EINVAL;
+  break;
+ };
+ return retval;
+}
