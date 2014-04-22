@@ -231,13 +231,13 @@ char * parseAttributes(unsigned char string[], unsigned char buffer[], unsigned 
     int attr_count = 0;
 
     // parse attributes via bitmask
-    if(buffer[key] & 0x80)
+    if(buffer[key] & 0x01)
         string[attr_count++] = 'R';
-    if(buffer[key] & 0x40)
+    if(buffer[key] & 0x02)
         string[attr_count++] = 'H';
-    if(buffer[key] & 0x20)
-        string[attr_count++] = 'S';
     if(buffer[key] & 0x04)
+        string[attr_count++] = 'S';
+    if(buffer[key] & 0x20)
         string[attr_count++] = 'A';
 
     // null terminate
